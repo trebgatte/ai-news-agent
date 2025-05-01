@@ -1,7 +1,11 @@
 
 # AI News Agent
 
-This agent retrieves, prioritizes, and summarizes AI news developments with relevance to the Microsoft ecosystem, healthcare, and legal industries. It uses Bing News via SerpAPI to fetch high-credibility news sources and generates a Markdown-formatted summary table of up to 10 developments.
+AI News is an intelligent information summarization agent designed to help executives and decision-makers stay on top of the rapidly evolving world of artificial intelligence. By continuously scanning credible news sources, it identifies and summarizes the most impactful AI developments—especially those relevant to the Microsoft ecosystem, healthcare, and construction industries.
+
+The agent reduces information overload by prioritizing high-value updates and presenting them in a clear, digestible Markdown table format. Each summary includes a headline, date, key insight, strategic implications, and a verified source link.
+AI News is not a replacement for human analysis or legal due diligence. Instead, it augments executive awareness by surfacing credible developments that may require further attention or discussion. All strategic decisions and compliance assessments remain the responsibility of the end user.
+
 
 ## 🔍 What It Does
 
@@ -36,7 +40,7 @@ Refer to [`agent-ai-news.ipynb`](./agent-ai-news.ipynb) for step-by-step usage.
 
 ## 🖼 Logo
 
-Refer to ['marquee_insights_logo.svg"]()./marquee_insights_logo.svg)
+Refer to ['marquee_insights_logo.svg"](./marquee_insights_logo.svg)
 
 ## 📜 License
 
