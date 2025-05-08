@@ -37,7 +37,7 @@ system_prompt = SystemMessagePromptTemplate.from_template(system_prompt_text)
 
 # Create agent with system prompt
 agent = client.create_agent(
-    name="ai-developments-aggregation-agent",
+    name="ai-news",
     tools=[ToolConfiguration(alias="bing", tool=bing_tool)],
     options=AgentOptions(default_model="gpt-4o-mini"),
     system_message=system_prompt
