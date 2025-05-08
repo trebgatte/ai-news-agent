@@ -112,7 +112,7 @@ Agent: (returns a Markdown table of up to 10 items)
 
 ## 🖼 Company Logo
 
-[Logo](./assets/marquee_insights_logo.svg)
+![Logo](./assets/marquee_insights_logo.svg)
 
 ## Company
 Marquee Insights is a specialized AI consultancy delivering cutting-edge solutions. Visit [Marquee Insights](https://marqueeinsights.com).
