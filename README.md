@@ -50,7 +50,7 @@ This agent uses Azure AI Projects with the BingGroundedSearchTool to query Bing 
 
 ## 📁 Example Notebook
 
-Refer to [`agent-ai-news.ipynb`](./agent-ai-news.ipynb) for a guided walkthrough.
+Refer to [`demo_ai_news_usage.ipynb`](./assets/demo_ai_news_usage.ipynb) for a guided walkthrough.
 
 ## Setup Instructions
 
