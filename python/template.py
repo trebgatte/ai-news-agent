@@ -1,6 +1,3 @@
-## template.py
-
-```python
 import os
 import datetime
 from dateutil import tz
@@ -8,6 +5,7 @@ from azure.ai.projects import AIClient  # Azure AI Projects SDK
 from azure.ai.projects.models import ToolConfiguration, AgentOptions
 from azure.ai.projects.tools import BingGroundedSearchTool
 from azure.core.credentials import AzureKeyCredential
+from azure.ai.projects.prompts import SystemMessagePromptTemplate 
 
 # Configuration
 TIME_LOOKBACK_HOURS = int(os.getenv("TIME_LOOKBACK_HOURS", "24"))
