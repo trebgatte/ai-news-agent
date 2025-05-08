@@ -54,36 +54,59 @@ Refer to [`demo_ai_news_usage.ipynb`](./assets/demo_ai_news_usage.ipynb) for a g
 
 ## Setup Instructions
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-org/azure-ai-agent-service-blueprints.git
-   cd azure-ai-agent-service-blueprints/ai-developments-aggregation-agent
-   ```
-2. Create and activate a virtual environment:
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Set required environment variables:
-   ```bash
-   export AZURE_OPENAI_ENDPOINT="https://<your-endpoint>.openai.azure.com/"
-   export AZURE_OPENAI_KEY="<your-openai-key>"
-   export BING_SEARCH_KEY="<your-bing-key>"
-   ```
-5. (Optional) Review and modify configuration in `template.py`.
+### 1. Clone the repository
+```bash
+git clone https://github.com/your-org/azure-ai-agent-service-blueprints.git
+cd azure-ai-agent-service-blueprints/ai-news
+```
 
-### Configuration Guide
+### 2. Provision Azure Resources with Bicep
+This Bicep script will:
+- Reference your existing Azure AI Agent Service project and model deployment  
+- Create a Bing Grounding resource and connect it to your Cognitive Services account  
+- Provision a Storage Account, App Service Plan, and Function App  
 
-| Parameter                | Description                                                                                                         |
-|--------------------------|---------------------------------------------------------------------------------------------------------------------|
-| `TIME_LOOKBACK_HOURS`    | Number of hours to look back (default 24)                                                                            |
-| `MAX_ITEMS`              | Maximum number of developments to return (default 10)                                                                |
-| `PRIORITY_ORDER`         | Topic priority list (default `["Microsoft+Healthcare","Microsoft+Legal","Healthcare","Legal"]`)                      |
-| `CREDIBLE_SOURCES`       | List of domains to consider (default `["gartner.com", "reuters.com", "wired.com", "mit.edu", "stanford.edu", "berkeley.edu", "washington.edu", "ox.ac.uk", "cam.ac.uk", "ethz.ch", "mpg.de", "csail.mit.edu", "isi.edu", "deepmind.com", "openai.com", "research.google", "ai.facebook.com", "microsoft.com/en-us/research", "nvidia.com/research", "ieee.org", "ieeexplore.ieee.org", "jair.org", "neuralnetworksjournal.com", "sciencedaily.com", "technologyreview.com", "wired.com", "theverge.com", "techcrunch.com", "analyticsinsight.net", "aimagazine.com", "aitrends.com", "aichief.com", "techtarget.com"]`)            |
+Run:
+```bash
+az deployment group create \
+  --resource-group <rg> \
+  --template-file deploy.bicep \
+  --parameters functionAppName=aiNewsApp account_name=<your-cognitive-account-name>
+```
+- Replace `<your-cognitive-account-name>` with the name of your existing Cognitive Services account.  
+- The script creates a Bing Grounding account named `bingsearch-<your-cognitive-account-name>` and a connection.
+
+### 3. Create a `.env` file
+In the project root, create `.env` containing:
+```ini
+PROJECT_ENDPOINT=<your-ai-agent-service-endpoint>
+MODEL_DEPLOYMENT_NAME=<your-openai-model-deployment-name>
+BING_CONNECTION_ID=<leave blank; Function App app setting will be injected>
+```
+
+### 4. Install dependencies
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 5. Create `system_prompt.txt`
+Refer to the main README for your prompt content.
+
+### 6. Run the agent locally
+```bash
+python template.py
+```
+7. (Optional) Review and modify configuration in `template.py`.
+
+## Configuration Guide
+| Envar                   | Description                                                    |
+|-------------------------|----------------------------------------------------------------|
+| `PROJECT_ENDPOINT`      | Azure AI Agent Service project endpoint                        |
+| `MODEL_DEPLOYMENT_NAME` | Name of the OpenAI model deployment (e.g., `gpt-4o-mini`)      |
+| `BING_CONNECTION_ID`    | Resource ID of the Bing Grounding connection (injected in FUNC)|
+| `USE_SAMPLE`            | Set to `true` to use local sample JSON instead of live calls   |
 
 ### Sample Data
 
@@ -106,7 +129,6 @@ Agent: (returns a Markdown table of up to 10 items)
 
 ### Customization Tips
 
-- To adjust focus areas or add new topics, update `PRIORITY_ORDER` in `template.py`.
 - To route output to other targets (e.g., email, Teams), wrap the final table in a notification action.
 - To change the timezone from Pacific, review the # Compute time window (Pacific) section and make the necessary adjustments
 

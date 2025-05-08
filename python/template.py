@@ -1,73 +1,41 @@
 import os
-import datetime
-from dateutil import tz
-from azure.ai.projects import AIClient  # Azure AI Projects SDK
-from azure.ai.projects.models import ToolConfiguration, AgentOptions
-from azure.ai.projects.tools import BingGroundedSearchTool
-from azure.core.credentials import AzureKeyCredential
-from azure.ai.projects.prompts import SystemMessagePromptTemplate 
+from dotenv import load_dotenv
+from azure.identity import DefaultAzureCredential
+from azure.ai.agents import AgentsClient
+from azure.ai.agents.models import BingGroundingTool
 
-# Configuration
-TIME_LOOKBACK_HOURS = int(os.getenv("TIME_LOOKBACK_HOURS", "24"))
-MAX_ITEMS = int(os.getenv("MAX_ITEMS", "10"))
-PRIORITY_ORDER = [
-    "Microsoft+Healthcare",
-    "Microsoft+Legal",
-    "Healthcare",
-    "Legal",
-]
-CREDIBLE_SOURCES = ["gartner.com", "reuters.com", "wired.com", "mit.edu", "stanford.edu", "berkeley.edu", "washington.edu", "ox.ac.uk", "cam.ac.uk", "ethz.ch", "mpg.de", "csail.mit.edu", "isi.edu", "deepmind.com", "openai.com", "research.google", "ai.facebook.com", "microsoft.com/en-us/research", "nvidia.com/research", "ieee.org", "ieeexplore.ieee.org", "jair.org", "neuralnetworksjournal.com", "sciencedaily.com", "technologyreview.com", "wired.com", "theverge.com", "techcrunch.com", "analyticsinsight.net", "aimagazine.com", "aitrends.com", "aichief.com", "techtarget.com"]
+# Load environment variables from .env file
+load_dotenv()
 
-# Initialize client and tools
-auth = AzureKeyCredential(os.getenv("AZURE_OPENAI_KEY"))
-client = AIClient(
-    endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-    credential=auth
+# Configuration from environment
+PROJECT_ENDPOINT = os.getenv("PROJECT_ENDPOINT")
+MODEL_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
+BING_CONNECTION_ID = os.getenv("BING_CONNECTION_ID")
+
+# Validate configuration
+if not all([PROJECT_ENDPOINT, MODEL_DEPLOYMENT_NAME, BING_CONNECTION_ID]):
+    raise ValueError("Missing one or more environment variables: PROJECT_ENDPOINT, MODEL_DEPLOYMENT_NAME, BING_CONNECTION_ID")
+
+# Initialize the Agents client
+agents_client = AgentsClient(
+    endpoint=PROJECT_ENDPOINT,
+    credential=DefaultAzureCredential(),
 )
 
-bing_tool = BingGroundedSearchTool(
-    name="bing",
-    credential=os.getenv("BING_SEARCH_KEY")
-)
-
-# Load system prompt
+# Load system prompt instructions
 with open("system_prompt.txt", "r", encoding="utf-8") as f:
-    system_prompt_text = f.read()
-system_prompt = SystemMessagePromptTemplate.from_template(system_prompt_text)
+    instructions = f.read().strip()
 
-# Create agent with system prompt
-agent = client.create_agent(
-    name="ai-news",
-    tools=[ToolConfiguration(alias="bing", tool=bing_tool)],
-    options=AgentOptions(default_model="gpt-4o-mini"),
-    system_message=system_prompt
-)
+# Initialize the Bing Grounding tool
+bing_tool = BingGroundingTool(connection_id=BING_CONNECTION_ID)
 
-agent = client.create_agent(
-    name="ai-developments-aggregation-agent",
-    tools=[ToolConfiguration(alias="bing", tool=bing_tool)],
-    options=AgentOptions(
-        default_model="gpt-4o-mini"
-    )
-)
-
-# Compute time window (Pacific)
-tz_pacific = tz.gettz("America/Los_Angeles")
-end_time = datetime.datetime.now(tz_pacific)
-start_time = end_time - datetime.timedelta(hours=TIME_LOOKBACK_HOURS)
-
-def build_query():
-    return f"AI development news after {start_time.isoformat()} before {end_time.isoformat()}"
-
-# Run the agent workflow
-def main():
-    query = build_query()
-    response = agent.invoke(
-        user_message=query
+# Create or update the AI News agent
+with agents_client:
+    agent = agents_client.create_agent(
+        model=MODEL_DEPLOYMENT_NAME,
+        name="ai-news",
+        instructions=instructions,
+        tools=bing_tool.definitions,
     )
 
-    # Agent prompt should handle filtering, prioritization, summarization, and formatting
-    print(response.content)
-
-if __name__ == "__main__":
-    main()
+print(f"AI News agent created with ID: {agent.id}")
